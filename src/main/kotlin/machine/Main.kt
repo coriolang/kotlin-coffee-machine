@@ -16,7 +16,7 @@ class CoffeeMachine(
         get() = _money
 
     fun ingredientsInfo() {
-        println("The coffee machine has:")
+        println("\nThe coffee machine has:")
         println("$_water of water")
         println("$_milk of milk")
         println("$_beans of coffee beans")
@@ -24,28 +24,66 @@ class CoffeeMachine(
         println("$_money of money")
     }
 
-    fun makeCoffee(selectedCoffee: Int) {
-        when (selectedCoffee) {
-            1 -> makeCoffee(espresso)
-            2 -> makeCoffee(latte)
-            3 -> makeCoffee(cappuccino)
+    fun hasEnoughIngredients(selectedCoffee: Int): Boolean {
+        val hasEnoughIngredients: Boolean = when (selectedCoffee) {
+            1 -> hasEnoughIngredients(espresso)
+            2 -> hasEnoughIngredients(latte)
+            else -> hasEnoughIngredients(cappuccino)
         }
+
+        return hasEnoughIngredients
     }
 
-    private fun makeCoffee(selectedCoffee: Coffee) {
-        if (_water < selectedCoffee.waterPerCup
-            || _milk < selectedCoffee.milkPerCup
-            || _beans < selectedCoffee.beansPerCup
-            || _cups < 1) {
+    private fun hasEnoughIngredients(selectedCoffee: Coffee): Boolean {
+        return !(_water < selectedCoffee.waterPerCup
+                || _milk < selectedCoffee.milkPerCup
+                || _beans < selectedCoffee.beansPerCup
+                || _cups < 1)
+    }
 
-            return
+    fun identifyMissingIngredient(selectedCoffee: Int): String {
+        val missingIngredient: String = when (selectedCoffee) {
+            1 -> identifyMissingIngredient(espresso)
+            2 -> identifyMissingIngredient(latte)
+            else -> identifyMissingIngredient(cappuccino)
         }
 
+        return missingIngredient
+    }
+
+    private fun identifyMissingIngredient(selectedCoffee: Coffee): String {
+        val missingIngredient: String =
+            if (_water < selectedCoffee.waterPerCup) {
+                "water"
+            } else if (_milk < selectedCoffee.milkPerCup) {
+                "milk"
+            } else if (_beans < selectedCoffee.beansPerCup) {
+                "beans"
+            } else {
+                "cups"
+            }
+
+        return missingIngredient
+    }
+
+    fun makeCoffee(selectedCoffee: Int): Boolean {
+        val success = when (selectedCoffee) {
+            1 -> makeCoffee(espresso)
+            2 -> makeCoffee(latte)
+            else -> makeCoffee(cappuccino)
+        }
+
+        return success
+    }
+
+    private fun makeCoffee(selectedCoffee: Coffee): Boolean {
         _money += selectedCoffee.moneyPerCup
         _water -= selectedCoffee.waterPerCup
         _milk -= selectedCoffee.milkPerCup
         _beans -= selectedCoffee.beansPerCup
         _cups--
+
+        return true
     }
 
     fun fillMachine(water: Int, milk: Int, beans: Int, cups: Int) {
@@ -69,35 +107,55 @@ data class Coffee(
 
 fun main(args: Array<String>) {
     val coffeeMachine = CoffeeMachine()
+    var usersInput = ""
 
-    coffeeMachine.ingredientsInfo()
+    while (usersInput != "exit") {
+        println("\nWrite action (buy, fill, take, remaining, exit):")
+        usersInput = readLine() ?: ""
 
-    println("Write action (buy, fill, take): > ")
-    val usersInput = readLine() ?: ""
+        when (usersInput) {
+            "buy" -> {
+                println("\nWhat do you want to buy? " +
+                        "1 - espresso, " +
+                        "2 - latte, " +
+                        "3 - cappuccino, " +
+                        "back - to main menu:")
+                val selectedCoffee = readLine() ?: ""
 
-    when (usersInput) {
-        "buy" -> {
-            println("\nWhat do you want to buy? 1 - espresso, 2 - latte, 3 - cappuccino: > 3")
-            val selectedCoffee = readLine()?.toIntOrNull() ?: 0
-            coffeeMachine.makeCoffee(selectedCoffee)
-        }
-        "fill" -> {
-            println("\nWrite how many ml of water do you want to add: > ")
-            val water = readLine()?.toIntOrNull() ?: 0
-            println("Write how many ml of milk do you want to add: > ")
-            val milk = readLine()?.toIntOrNull() ?: 0
-            println("Write how many grams of coffee beans do you want to add: > ")
-            val beans = readLine()?.toIntOrNull() ?: 0
-            println("Write how many disposable cups of coffee do you want to add: > ")
-            val cups = readLine()?.toIntOrNull() ?: 0
+                if (selectedCoffee == "1"
+                    || selectedCoffee == "2"
+                    || selectedCoffee == "3") {
 
-            coffeeMachine.fillMachine(water, milk, beans, cups)
-        }
-        "take" -> {
-            println("\nI gave you \$${coffeeMachine.money}")
-            coffeeMachine.takeMoney()
+                    if (coffeeMachine.hasEnoughIngredients(selectedCoffee.toInt())) {
+                        println("I have enough resources, making you a coffee!")
+                        coffeeMachine.makeCoffee(selectedCoffee.toInt())
+                    } else {
+                        val missingIngredient = coffeeMachine.identifyMissingIngredient(selectedCoffee.toInt())
+                        println("Sorry, not enough $missingIngredient!")
+                    }
+                } else {
+                    continue
+                }
+            }
+            "fill" -> {
+                println("\nWrite how many ml of water do you want to add:")
+                val water = readLine()?.toIntOrNull() ?: 0
+                println("Write how many ml of milk do you want to add:")
+                val milk = readLine()?.toIntOrNull() ?: 0
+                println("Write how many grams of coffee beans do you want to add:")
+                val beans = readLine()?.toIntOrNull() ?: 0
+                println("Write how many disposable cups of coffee do you want to add:")
+                val cups = readLine()?.toIntOrNull() ?: 0
+
+                coffeeMachine.fillMachine(water, milk, beans, cups)
+            }
+            "take" -> {
+                println("\nI gave you \$${coffeeMachine.money}")
+                coffeeMachine.takeMoney()
+            }
+            "remaining" -> {
+                coffeeMachine.ingredientsInfo()
+            }
         }
     }
-
-    coffeeMachine.ingredientsInfo()
 }
