@@ -1,5 +1,5 @@
 # Project: Coffee Machine
-Kotlin Basics Project
+Kotlin Basics Project  
 Medium Difficulty
 
 ## About
